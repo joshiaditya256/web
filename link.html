@@ -1,186 +1,237 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import "../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
-function App() {
-  const [emps, setEmps] = useState([]);
-  const [emp, setEmp] = useState({ name: "", powers: "",});
-   
+ASP.NET Core MVC CRUD (Database First)  BankSystem
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+1.  Create Project
 
-  const [editId, setEditId] = useState(0);
+-   Open Visual Studio 2022
+-   Create New Project
+-   Choose ASP.NET Core Web App (Model-View-Controller)
+-   Project Name: BankSystem
+-   Framework: .NET 8 (or lab version)
+-   Authentication: None
+-   Check Configure for HTTPS
+-   Create
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+2.  Install NuGet Packages
+
+-   Microsoft.EntityFrameworkCore.SqlServer
+-   Microsoft.EntityFrameworkCore.Design
+-   Microsoft.EntityFrameworkCore.Tools
+-   Microsoft.VisualStudio.Web.CodeGeneration.Design (recommended)
+------------------------------------------------------------------------------------------------------------------------------------------------------
+3.  Create Database
+
+-   View -> SQL Server Object Explorer
+-   (localdb)-> Databases -> Add New Database
+-   Name: BankDB
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+4.  Create Table
+
+-   Tables -> Add New Table Columns: Id int (Primary Key, Identity=True)
+    name nvarchar(50) accountno int address nvarchar(100)
+-   Update -> Table Name: Account -> Update Database
+-   (Optional) Insert sample data
+------------------------------------------------------------------------------------------------------------------------------------------------------
+5.  Scaffold Database First Tools -> NuGet Package Manager -> Package
+    Manager Console
+
+Scaffold-DbContext “Data Source=(localdb);Initial
+Catalog=BankDB;Integrated Security=True;Connect
+Timeout=30;Encrypt=True;Trust Server Certificate=False;Application
+Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30”
+Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models
+
+Generated: - Models/Account.cs - Models/BankDbContext.cs
+
+Delete only the #warning line in BankDbContext.cs.
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-  const getdata = () => {
-    axios
-      .get("http://localhost:5000/api/users")
-      .then((res) => {
-        setEmps(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
 
-  
-  const addRecord = () => {
-    if (emp.name !== "" && emp.powers !== "") {
-      axios
-        .post("http://localhost:5000/api/users", emp)
-        .then((res) => {
-          getdata();
 
-          setEmp({
-            name: "",
-            powers: "",
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+Step 6 - appsettings.json
+
+Open appsettings.json and replace it with:
+
+    {
+      "Logging": {
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft.AspNetCore": "Warning"
+        }
+      },
+
+      "AllowedHosts": "*",
+
+      "ConnectionStrings": {
+        "DefaultConnection": "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=BankDB;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30"
+      }
     }
-  };
 
-  
-  const remove = (id) => {
-    axios
-      .delete(`http://localhost:5000/api/users/${id}`)
-      .then((res) => {
-        getdata();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
+Save the file.
 
-  
-  const update = () => {
-    if (emp.name !== "" && emp.powers !== "") {
-      axios
-        .put(`http://localhost:5000/api/users/${editId}`, emp)
-        .then((res) => {
-          getdata();
+------------------------------------------------------------------------
 
-          setEmp({
-            name: "",
-            powers: "",
-          });
+Step 7 - Program.cs
 
-          setEditId(0);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+Replace Program.cs with:
+
+    using Microsoft.EntityFrameworkCore;
+    using BankSystem.Models;
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    string connection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    builder.Services.AddDbContext<BankDbContext>(options =>
+    {
+        options.UseSqlServer(connection);
+    });
+
+    builder.Services.AddControllersWithViews();
+
+    var app = builder.Build();
+
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseExceptionHandler("/Home/Error");
+        app.UseHsts();
     }
-  };
 
-  
-  useEffect(() => {
-    getdata();
-  }, []);
+    app.UseHttpsRedirection();
 
-  
-  const onTextChange = (e) => {
-    const copy = { ...emp };
+    app.UseRouting();
 
-    copy[e.target.id] = e.target.value;
+    //app.UseAuthorization();
 
-    setEmp(copy);
-  };
+    app.MapStaticAssets();
 
-  return (
-    <>
-      <div className="container">
-        <center>
-          <label htmlFor="name">Name</label>
+    app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}")
+        .WithStaticAssets();
 
+    app.Run();
 
-       
+Build the solution.
 
-  
-          <input
-            type="text"
-            id="name"
-            className="form-control"
-            value={emp.name}
-            onChange={onTextChange}
-          />
+------------------------------------------------------------------------
 
-          <hr />
+Step 8
 
-          <label htmlFor="powers">Powers</label>
+Build → Build Solution
 
-          <input
-            type="text"
-            id="powers"
-            className="form-control"
-            value={emp.powers}
-            onChange={onTextChange}
-          />
+No errors should remain.
 
-          <hr />
-      
+------------------------------------------------------------------------
 
-          <button className="btn btn-primary me-2" onClick={addRecord}>
-            Add Record
-          </button>
+Step 9 - Generate MVC CRUD
 
-          <button className="btn btn-success" onClick={update}>
-            Update
-          </button>
-        </center>
+Right Click Controllers
 
-        <hr />
+→ Add
 
-        <div className="table-responsive">
-          <table className="table table-bordered text-center">
-            <thead>
-              <tr>
-                <th>Empno</th>
-                <th>Ename</th>
-                <th>Job</th>
-                <th colSpan={2}>Actions</th>
-              </tr>
-            </thead>
+→ New Scaffolded Item
 
-            <tbody>
-              {emps.map((e) => (
-                <tr key={e.id}>
-                  <td>{e.id}</td>
-                  <td>{e.name}</td>
-                  <td>{e.address}</td>
+→ MVC Controller with views, using Entity Framework
 
-                  <td>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => remove(e.id)}
-                    >
-                      Remove
-                    </button>
-                  </td>
+Select:
 
-                  <td>
-                    <button
-                      className="btn btn-warning"
-                      onClick={() => {
-                        setEditId(e.id);
+Model class: Account
 
-                        setEmp({
-                          name: e.name,
-                          powers: e.address,
-                        });
-                      }}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </>
-  );
-}
+Data context class: BankDbContext
 
-export default App;
+Controller name: AccountsController
+
+Click Add.
+
+Generated automatically:
+
+Controllers - AccountsController.cs
+
+Views - Account - Index.cshtml - Create.cshtml - Edit.cshtml -
+Delete.cshtml - Details.cshtml
+
+------------------------------------------------------------------------
+
+Step 10 - Rename Views Folder
+
+Visual Studio usually creates
+
+Views/Account
+
+Rename it to
+
+Views/Accounts
+
+because your controller is
+
+AccountsController.cs
+
+The controller name and View folder name must match.
+
+Final folder:
+
+Views Accounts Create.cshtml Delete.cshtml Details.cshtml Edit.cshtml
+Index.cshtml
+
+------------------------------------------------------------------------
+
+Step 11 - Navigation Menu
+
+Open
+
+Views → Shared → _Layout.cshtml
+
+Add inside the navbar:
+
+    <li class="nav-item">
+        <a class="nav-link text-dark"
+           asp-area=""
+           asp-controller="Accounts"
+           asp-action="Index">
+           BankSystem
+        </a>
+    </li>
+
+Save.
+
+------------------------------------------------------------------------
+
+Step 12 - Run
+
+Press Ctrl+F5
+
+Open
+
+https://localhost:PORT/Accounts
+
+------------------------------------------------------------------------
+
+Generated CRUD
+
+Index - Displays all records.
+
+Create - Adds a new record.
+
+Details - Finds record by Id.
+
+Edit - Updates record by Id.
+
+Delete - Deletes record by Id.
+
+Automatically included:
+
+-   ModelState.IsValid
+-   NotFound()
+-   DbUpdateConcurrencyException
+
+Keep these files:
+
+-   HomeController.cs
+-   ErrorViewModel.cs
+-   Views/Home
+-   Views/Shared
+
+Do not delete them.
