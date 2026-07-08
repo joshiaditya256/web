@@ -13,6 +13,106 @@ Practiced on Ubuntu VM (VirtualBox). Git commands also work in Git Bash on Windo
 
 ---
 
+
+Step 1: Check Internet
+
+Run:
+
+ping -c 4 google.com
+
+If you see replies like:
+
+64 bytes from ...
+
+your internet is working.
+
+Step 2: Update Packages
+
+Run:
+
+sudo apt update
+
+It will ask for your password.
+
+Type your password.
+Nothing will appear while typing (this is normal in Linux).
+Press Enter.
+
+Wait until it finishes.
+
+Step 3: Upgrade Packages (Recommended)
+sudo apt upgrade -y
+
+This may take a few minutes.
+
+Step 4: Check Git
+git --version
+If it says:
+git version 2.xx.x
+
+Git is already installed.
+
+Otherwise install it:
+
+sudo apt install git -y
+
+Verify again:
+
+git --version
+Step 5: Check Docker
+docker --version
+If Docker is not installed:
+
+Install it:
+
+sudo apt install docker.io -y
+Step 6: Start Docker
+sudo systemctl start docker
+
+Enable Docker to start automatically:
+
+sudo systemctl enable docker
+
+Check status:
+
+sudo systemctl status docker
+
+You should see:
+
+Active: active (running)
+
+Press Q to exit the status screen.
+
+Step 7: Verify Docker
+docker --version
+Step 8: Allow Docker Without sudo (Optional)
+
+Run:
+
+sudo usermod -aG docker $USER
+
+Then either log out and log back in, or restart the VM.
+
+Step 9: Test Docker
+docker run hello-world
+
+If you get a permission error, use:
+
+sudo docker run hello-world
+
+If everything is working, you'll see the Hello from Docker! message.
+
+Step 10: Verify Everything
+
+Run:
+
+git --version
+docker --version
+
+If both show version numbers, you're ready for the CDAC practical.
+
+
+
 ## Linux Practical
 
 ### 1. Start Ubuntu
